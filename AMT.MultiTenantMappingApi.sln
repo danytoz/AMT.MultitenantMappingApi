@@ -1,0 +1,59 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33927.249
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AMT.MultiTenantMappingApi", "AMT.MultiTenantMappingApi\AMT.MultiTenantMappingApi.csproj", "{BF48FA24-BF43-40EF-A100-E4F6DA63158A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataAccessLayer", "DataAccessLayer", "{C0A3C518-F7A0-4DC7-B021-9663663921E6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AMT.GenericRepository", "AMT.GenericRepository\AMT.GenericRepository.csproj", "{6182ADD3-A0A5-4798-A8D6-B1246DAC50FB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AMT.UserRepository", "AMT.UserRepository\AMT.UserRepository.csproj", "{5C5C2273-97BF-41DA-8EE3-4445AB4FC251}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AMT.FluentMigrator", "AMT.FluentMigrator\AMT.FluentMigrator.csproj", "{D9BCB7A1-6831-4958-8668-CEFABB571A57}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Helpers", "Helpers", "{8353D5EB-5900-488D-97FD-671FD4A9381D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AMT.DbHelpers", "AMT.DbHelpers\AMT.DbHelpers.csproj", "{BD21AC03-E634-4468-958C-C5F564AB3276}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BF48FA24-BF43-40EF-A100-E4F6DA63158A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF48FA24-BF43-40EF-A100-E4F6DA63158A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF48FA24-BF43-40EF-A100-E4F6DA63158A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF48FA24-BF43-40EF-A100-E4F6DA63158A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6182ADD3-A0A5-4798-A8D6-B1246DAC50FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6182ADD3-A0A5-4798-A8D6-B1246DAC50FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6182ADD3-A0A5-4798-A8D6-B1246DAC50FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6182ADD3-A0A5-4798-A8D6-B1246DAC50FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C5C2273-97BF-41DA-8EE3-4445AB4FC251}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C5C2273-97BF-41DA-8EE3-4445AB4FC251}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C5C2273-97BF-41DA-8EE3-4445AB4FC251}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C5C2273-97BF-41DA-8EE3-4445AB4FC251}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9BCB7A1-6831-4958-8668-CEFABB571A57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9BCB7A1-6831-4958-8668-CEFABB571A57}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9BCB7A1-6831-4958-8668-CEFABB571A57}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9BCB7A1-6831-4958-8668-CEFABB571A57}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD21AC03-E634-4468-958C-C5F564AB3276}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD21AC03-E634-4468-958C-C5F564AB3276}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD21AC03-E634-4468-958C-C5F564AB3276}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD21AC03-E634-4468-958C-C5F564AB3276}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6182ADD3-A0A5-4798-A8D6-B1246DAC50FB} = {C0A3C518-F7A0-4DC7-B021-9663663921E6}
+		{5C5C2273-97BF-41DA-8EE3-4445AB4FC251} = {C0A3C518-F7A0-4DC7-B021-9663663921E6}
+		{D9BCB7A1-6831-4958-8668-CEFABB571A57} = {C0A3C518-F7A0-4DC7-B021-9663663921E6}
+		{BD21AC03-E634-4468-958C-C5F564AB3276} = {8353D5EB-5900-488D-97FD-671FD4A9381D}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3F87FC82-B028-4CC9-A99E-EC7A55F996E4}
+	EndGlobalSection
+EndGlobal

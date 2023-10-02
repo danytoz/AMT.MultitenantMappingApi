@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>75d44114-8e0c-4738-93c0-078489f01dbd</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.10" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AMT.DbHelpers\AMT.DbHelpers.csproj" />
+    <ProjectReference Include="..\AMT.FluentMigrator\AMT.FluentMigrator.csproj" />
+    <ProjectReference Include="..\AMT.GenericRepository\AMT.GenericRepository.csproj" />
+    <ProjectReference Include="..\AMT.UserRepository\AMT.UserRepository.csproj" />
+  </ItemGroup>
+
+</Project>
