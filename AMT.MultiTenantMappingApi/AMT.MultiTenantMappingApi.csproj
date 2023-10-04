@@ -16,6 +16,7 @@
     <ProjectReference Include="..\AMT.DbHelpers\AMT.DbHelpers.csproj" />
     <ProjectReference Include="..\AMT.FluentMigrator\AMT.FluentMigrator.csproj" />
     <ProjectReference Include="..\AMT.GenericRepository\AMT.GenericRepository.csproj" />
+    <ProjectReference Include="..\AMT.Services\AMT.Services.csproj" />
     <ProjectReference Include="..\AMT.UserRepository\AMT.UserRepository.csproj" />
   </ItemGroup>
 

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AMT.UserRepository.Repository
 {
-    public class HashingAlgorithmRepository: EfRepository<HashingAlgorithm, Guid>, IHashingAlgorithmRepository
+    public class HashingAlgorithmRepository: EfRepository<HashingAlgorithm, int>, IHashingAlgorithmRepository
     {
         public HashingAlgorithmRepository(DbContext context) : base(context) { }
     }

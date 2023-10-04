@@ -1,6 +1,7 @@
 using AMT.FluentMigrator;
 using AMT.GenericRepository;
 using AMT.GenericRepository.EfCore;
+using AMT.Services.PwdServices;
 using AMT.UserRepository;
 using AMT.UserRepository.UnitOfWork;
 
@@ -14,6 +15,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IUnitOfWorkUser, UnitOfWorkUser>();
 builder.Services.AddScoped(typeof(IRepository<,>), typeof(EfRepository<,>));
+builder.Services.AddScoped<IPasswordServices, PasswordServices>();
 builder.Services.AddUserDbContext(options =>
 {
     options.ServerAddress = builder.Configuration["Connections:UserDataBase:Server"];

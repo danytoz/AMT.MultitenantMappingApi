@@ -2,7 +2,7 @@
 
 namespace AMT.UserRepository.Model
 {
-    public class HashingAlgorithm : BaseModel<Guid>
+    public class HashingAlgorithm : BaseModel<int>
     {
         public string AlgorithmName { get; set; }
         public int Iterations { get; set; }

@@ -1,4 +1,5 @@
 ﻿using AMT.DbHelpers.PasswordHelper;
+using AMT.Services.PwdServices;
 using AMT.UserRepository.Model;
 using AMT.UserRepository.UnitOfWork;
 using Microsoft.AspNetCore.Mvc;
@@ -10,9 +11,11 @@ namespace AMT.MultiTenantMappingApi.Controllers
     public class PasswordController : ControllerBase
     {
         private readonly IUnitOfWorkUser uowUser;
+        private readonly IPasswordServices passwordServices;
 
-        public PasswordController(IUnitOfWorkUser uowUser) {
+        public PasswordController(IUnitOfWorkUser uowUser, IPasswordServices passwordServices) {
             this.uowUser = uowUser;
+            this.passwordServices = passwordServices;
         }
 
         // GET Api endpoint
@@ -39,17 +42,7 @@ namespace AMT.MultiTenantMappingApi.Controllers
             }
             var hashingAlgorithm = await uowUser.HashingAlgorithmRepository
                 .GetFirstOrDefaultAsync(x=> x.AlgorithmName.Equals(AlgorithmEnum.BCrypt_9));
-            var passwordHashing = new BCryptPasswordHashing(hashingAlgorithm.Iterations);
-            var hashedPassword = passwordHashing.HashPassword(password, null);
-            var passwordEntity = new Password
-            {
-                UserId = userId,
-                PasswordHash = hashedPassword,
-                HashAlgorithmId = hashingAlgorithm.Id,
-                CreatedOnUtc = DateTime.UtcNow,
-                IsDeleted = false,
-                PasswordSalt = "fake salt"
-            };
+            var passwordEntity = passwordServices.CreatePassword(userId, password, hashingAlgorithm);
             var currentPassword = await uowUser.PasswordRepository.GetFirstOrDefaultAsync(x=> x.UserId == userId && !x.IsDeleted.Value);
             if(currentPassword != null)
             {
