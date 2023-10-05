@@ -2,6 +2,7 @@ using AMT.FluentMigrator;
 using AMT.GenericRepository;
 using AMT.GenericRepository.EfCore;
 using AMT.Services.PwdServices;
+using AMT.Services.UsrServices;
 using AMT.UserRepository;
 using AMT.UserRepository.UnitOfWork;
 
@@ -16,6 +17,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IUnitOfWorkUser, UnitOfWorkUser>();
 builder.Services.AddScoped(typeof(IRepository<,>), typeof(EfRepository<,>));
 builder.Services.AddScoped<IPasswordServices, PasswordServices>();
+builder.Services.AddScoped<IUserServices, UserServices>();
 builder.Services.AddUserDbContext(options =>
 {
     options.ServerAddress = builder.Configuration["Connections:UserDataBase:Server"];
@@ -25,7 +27,8 @@ builder.Services.AddUserDbContext(options =>
     options.TrustServerCertificate = Convert.ToBoolean(builder.Configuration["Connections:UserDataBase:TrustServerCertificate"]);
 });
 
-// Migration
+// Migration this set of credential should be different from the one used for the application, and probably should not eb run
+// from this application. This is just for demo purposes.
 var migrator = new InitializeMigration(
         builder.Configuration["Connections:UserDataBase:Server"],
         builder.Configuration["Connections:UserDataBase:Database"],

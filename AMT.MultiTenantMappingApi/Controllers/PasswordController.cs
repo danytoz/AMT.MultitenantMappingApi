@@ -42,14 +42,8 @@ namespace AMT.MultiTenantMappingApi.Controllers
             }
             var hashingAlgorithm = await uowUser.HashingAlgorithmRepository
                 .GetFirstOrDefaultAsync(x=> x.AlgorithmName.Equals(AlgorithmEnum.BCrypt_9));
-            var passwordEntity = passwordServices.CreatePassword(userId, password, hashingAlgorithm);
-            var currentPassword = await uowUser.PasswordRepository.GetFirstOrDefaultAsync(x=> x.UserId == userId && !x.IsDeleted.Value);
-            if(currentPassword != null)
-            {
-                uowUser.PasswordRepository.SoftDelete(currentPassword);
-            }
-            await uowUser.PasswordRepository.AddAsync(passwordEntity);
-            await uowUser.PasswordRepository.SaveChangesAsync();
+            var passwordEntity = await passwordServices.CreatePasswordAsync(userId, password, hashingAlgorithm);
+            Results.Ok();
         }
     }
 }
