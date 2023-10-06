@@ -1,9 +1,10 @@
 ﻿using AMT.DbHelpers.PasswordHelper;
+using AMT.Services.MappedObjects;
 using AMT.Services.PwdServices;
 using AMT.Services.UsrServices;
 using AMT.UserRepository.Model;
 using AMT.UserRepository.UnitOfWork;
-using FluentResults;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AMT.MultiTenantMappingApi.Controllers
@@ -15,18 +16,23 @@ namespace AMT.MultiTenantMappingApi.Controllers
         private readonly IUnitOfWorkUser uowUser;
         private readonly IPasswordServices passwordServices;
         private readonly IUserServices userServices;
+        private readonly IMapper mapper;
 
-        public UserController(IUnitOfWorkUser uowUser, IPasswordServices passwordServices, IUserServices userServices)
+        public UserController(IUnitOfWorkUser uowUser, IPasswordServices passwordServices, 
+            IUserServices userServices, IMapper mapper)
         {
             this.uowUser = uowUser;
             this.passwordServices = passwordServices;
             this.userServices = userServices;
+            this.mapper = mapper;
         }
         // GET Api endpoint
         [HttpGet(Name ="GetUserById")]
-        public async Task<User> Get(Guid Id)
+        public async Task<IResult> Get(Guid Id)
         {
-            return await uowUser.UserRepository.GetByIdAsync(Id);
+            User user = await uowUser.UserRepository.GetByIdAsync(Id);
+            var userDto = mapper.Map<UserDto>(user);
+            return Results.Ok(userDto);
         }
 
         // POST Api endpoint
@@ -41,8 +47,17 @@ namespace AMT.MultiTenantMappingApi.Controllers
             var user = result.Value;
             var hashingAlgorithm = await uowUser.HashingAlgorithmRepository
                 .GetFirstOrDefaultAsync(x => x.AlgorithmName.Equals(AlgorithmEnum.BCrypt_9.ToString()));
-            var passwordEntity = passwordServices.CreatePasswordAsync(user.Id, password, hashingAlgorithm);
-            return Results.Ok(result.Value);
+            var passwordResult = await passwordServices.CreatePasswordAsync(user.Id, password, hashingAlgorithm);
+            if(passwordResult.IsSuccess)
+            {
+                var userDto = mapper.Map<UserDto>(user);
+                return Results.Ok(userDto);
+            }
+
+            //rollback changes
+            uowUser.UserRepository.Delete(user);
+            await uowUser.UserRepository.SaveChangesAsync();
+            return Results.Ok($"Error creating user {passwordResult.Errors.Select(x=>x.Message)}");
         }
     }
 }

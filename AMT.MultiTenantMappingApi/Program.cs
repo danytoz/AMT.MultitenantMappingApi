@@ -1,6 +1,7 @@
 using AMT.FluentMigrator;
 using AMT.GenericRepository;
 using AMT.GenericRepository.EfCore;
+using AMT.Services.MappedObjects;
 using AMT.Services.PwdServices;
 using AMT.Services.UsrServices;
 using AMT.UserRepository;
@@ -18,6 +19,7 @@ builder.Services.AddScoped<IUnitOfWorkUser, UnitOfWorkUser>();
 builder.Services.AddScoped(typeof(IRepository<,>), typeof(EfRepository<,>));
 builder.Services.AddScoped<IPasswordServices, PasswordServices>();
 builder.Services.AddScoped<IUserServices, UserServices>();
+AutoMapperConfiguration.Configure(builder.Services);
 builder.Services.AddUserDbContext(options =>
 {
     options.ServerAddress = builder.Configuration["Connections:UserDataBase:Server"];
