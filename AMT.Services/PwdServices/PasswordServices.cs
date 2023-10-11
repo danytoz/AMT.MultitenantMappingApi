@@ -123,13 +123,12 @@ namespace AMT.Services.PwdServices
         {
             var previousPassword = await uowUser.PasswordRepository.GetFirstOrDefaultAsync(x => x.UserId == userId && !x.IsDeleted.Value);
             var passwordHashing = new BCryptPasswordHashing(previousPassword.HashAlgorithm.Iterations);
-            if(previousPassword == null)
+            if(previousPassword != null)
             {
-                return await CreateNewPassword(userId, password, hashingAlgorithm);
-            }
-            if (passwordHashing.VerifyPassword(password, previousPassword.PasswordHash))
-            {
-                return Result.Fail<Password>("Password is the same as the previous one");
+                if (passwordHashing.VerifyPassword(password, previousPassword.PasswordHash))
+                {
+                    return Result.Fail<Password>("Password is the same as the previous one");
+                }
             }
             
             var newPasswordResult = await CreatePasswordAsync(userId, password, hashingAlgorithm);
@@ -141,6 +140,30 @@ namespace AMT.Services.PwdServices
             await uowUser.PasswordRepository.SaveChangesAsync();
             return Result.Ok(newPasswordResult.Value);
             
+        }
+
+        public async Task<Result<bool>> VerifyPassword(Guid userId, string password)
+        {
+            // verify user exists
+            var user = uowUser.UserRepository.GetByIdAsync(userId);
+            if(user == null)
+            {
+                return Result.Fail<bool>("User not found");
+            }
+            // get password
+            var passwordEntity = await uowUser.PasswordRepository.GetFirstOrDefaultAsync(x => x.UserId == userId && !x.IsDeleted.Value);
+            if(passwordEntity == null)
+            {
+                return Result.Fail<bool>("Password not found, Big issue at this point");
+            }
+            // verify password
+            var passwordHashing = new BCryptPasswordHashing(passwordEntity.HashAlgorithm.Iterations);
+            var passworVerrification = passwordHashing.VerifyPassword(password, passwordEntity.PasswordHash);
+            if (!passworVerrification)
+            {
+                return Result.Fail<bool>("Password is not valid");
+            }
+            return Result.Ok(true);
         }
     }
 }

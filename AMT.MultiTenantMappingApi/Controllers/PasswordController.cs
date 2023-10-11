@@ -19,12 +19,15 @@ namespace AMT.MultiTenantMappingApi.Controllers
         }
 
         // GET Api endpoint
-        [HttpGet(Name ="GetPasswordByUserId")]
-        public async Task<bool> Get(Guid id)
+        [HttpGet(Name ="VerifyPassword")]
+        public async Task<IResult> Get(Guid userId, string password)
         {
-            var passwords = await uowUser.PasswordRepository.GetManyAsync(x => x.UserId == id 
-            && !x.IsDeleted.Value);
-            return passwords.Count() == 1;
+            var doesPasswordMatch = await passwordServices.VerifyPassword(userId, password);
+            if(doesPasswordMatch.IsFailed)
+            {
+                return Results.Ok(doesPasswordMatch.Errors.Select(x=>x.Message));
+            }
+            return Results.Ok(true);
         }
 
         // POST Api endpoint
