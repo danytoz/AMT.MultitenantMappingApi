@@ -1,8 +1,8 @@
-﻿
+﻿using AMT.Services.MappedObjects.Response;
 
 namespace AMT.Services.MappedObjects
 {
-    public class UserDto
+    public class UserDto: CustomResponseV1
     {
         public string Name { get; set; }
         public string LastName { get; set; }

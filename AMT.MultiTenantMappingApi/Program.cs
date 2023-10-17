@@ -2,8 +2,7 @@ using AMT.FluentMigrator;
 using AMT.GenericRepository;
 using AMT.GenericRepository.EfCore;
 using AMT.Services.MappedObjects;
-using AMT.Services.PwdServices;
-using AMT.Services.UsrServices;
+using AMT.Services;
 using AMT.UserRepository;
 using AMT.UserRepository.UnitOfWork;
 
@@ -17,8 +16,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IUnitOfWorkUser, UnitOfWorkUser>();
 builder.Services.AddScoped(typeof(IRepository<,>), typeof(EfRepository<,>));
-builder.Services.AddScoped<IPasswordServices, PasswordServices>();
-builder.Services.AddScoped<IUserServices, UserServices>();
+builder.Services.AddServices();
 AutoMapperConfiguration.Configure(builder.Services);
 builder.Services.AddUserDbContext(options =>
 {

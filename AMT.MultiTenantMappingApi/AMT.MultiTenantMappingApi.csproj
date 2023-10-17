@@ -21,4 +21,8 @@
     <ProjectReference Include="..\AMT.UserRepository\AMT.UserRepository.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
+
 </Project>

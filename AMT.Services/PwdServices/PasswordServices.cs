@@ -142,10 +142,10 @@ namespace AMT.Services.PwdServices
             
         }
 
-        public async Task<Result<bool>> VerifyPassword(Guid userId, string password)
+        public async Task<Result<bool>> VerifyPasswordAsync(Guid userId, string password)
         {
             // verify user exists
-            var user = uowUser.UserRepository.GetByIdAsync(userId);
+            var user = await uowUser.UserRepository.GetByIdAsync(userId);
             if(user == null)
             {
                 return Result.Fail<bool>("User not found");
@@ -158,6 +158,31 @@ namespace AMT.Services.PwdServices
             }
             // verify password
             var passwordHashing = new BCryptPasswordHashing(passwordEntity.HashAlgorithm.Iterations);
+            var passworVerrification = passwordHashing.VerifyPassword(password, passwordEntity.PasswordHash);
+            if (!passworVerrification)
+            {
+                return Result.Fail<bool>("Password is not valid");
+            }
+            return Result.Ok(true);
+        }
+
+        public async Task<Result<bool>> VerifyPasswordAsync(string userName, string password)
+        {
+            // verify user exists
+            var user = await uowUser.UserRepository.GetFirstOrDefaultAsync(x=>x.Username == userName);
+            if (user == null)
+            {
+                return Result.Fail<bool>("User not found");
+            }
+            // get password
+            var passwordEntity = await uowUser.PasswordRepository.GetFirstOrDefaultAsync(x => x.UserId == user.Id && !x.IsDeleted.Value);
+            if (passwordEntity == null)
+            {
+                return Result.Fail<bool>("Password not found, Big issue at this point");
+            }
+            // verify password
+            var hashAlgorithm = await uowUser.HashingAlgorithmRepository.GetByIdAsync(passwordEntity.HashAlgorithmId);
+            var passwordHashing = new BCryptPasswordHashing(hashAlgorithm.Iterations);
             var passworVerrification = passwordHashing.VerifyPassword(password, passwordEntity.PasswordHash);
             if (!passworVerrification)
             {

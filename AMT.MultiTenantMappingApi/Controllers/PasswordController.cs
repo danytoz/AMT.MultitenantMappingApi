@@ -1,6 +1,7 @@
 ﻿using AMT.DbHelpers.PasswordHelper;
+using AMT.Services.MappedObjects;
 using AMT.Services.PwdServices;
-using AMT.UserRepository.Model;
+using AMT.Services.TokenServices;
 using AMT.UserRepository.UnitOfWork;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,22 +13,38 @@ namespace AMT.MultiTenantMappingApi.Controllers
     {
         private readonly IUnitOfWorkUser uowUser;
         private readonly IPasswordServices passwordServices;
+        private readonly ITokenServices tokenServices;
 
-        public PasswordController(IUnitOfWorkUser uowUser, IPasswordServices passwordServices) {
+        public PasswordController(IUnitOfWorkUser uowUser, IPasswordServices passwordServices, 
+            ITokenServices tokenServices) {
             this.uowUser = uowUser;
             this.passwordServices = passwordServices;
+            this.tokenServices = tokenServices;
         }
 
-        // GET Api endpoint
-        [HttpGet(Name ="VerifyPassword")]
-        public async Task<IResult> Get(Guid userId, string password)
+        // Post Verify password
+        [HttpPost("~/VerifyPassword")]
+        public async Task<BearerTokenDto> VerifyPassword(PasswordDtoIn passwordDtoIn)
         {
-            var doesPasswordMatch = await passwordServices.VerifyPassword(userId, password);
+            var doesPasswordMatch = await passwordServices.VerifyPasswordAsync(passwordDtoIn.UserName, passwordDtoIn.Password);
+            var bearerTokenDto = new BearerTokenDto();
             if(doesPasswordMatch.IsFailed)
             {
-                return Results.Ok(doesPasswordMatch.Errors.Select(x=>x.Message));
+                bearerTokenDto.HttpStatusCode = 400;
+                bearerTokenDto.IsSuccess = false;
+                bearerTokenDto.Errors = doesPasswordMatch.Errors
+                    .Select(x => new AMT.Services.MappedObjects.Response.Error() { Message = x.Message }).ToList();
+                return bearerTokenDto;
             }
-            return Results.Ok(true);
+            bearerTokenDto.HttpStatusCode = 200;
+            bearerTokenDto.IsSuccess = true;
+            bearerTokenDto.Token = tokenServices.GenerateToken(new GenerateTokenProperties()
+            {
+                UserId = passwordDtoIn.UserId.ToString(),
+                Name = passwordDtoIn.UserName,
+                Roles = new List<string>() { "ChatUser", "CanCreateRooms"},
+            });
+            return bearerTokenDto;
         }
 
         // POST Api endpoint
