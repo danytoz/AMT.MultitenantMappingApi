@@ -2,7 +2,7 @@
 using AMT.Services.MappedObjects;
 using AMT.Services.PwdServices;
 using AMT.Services.TokenServices;
-using AMT.UserRepository.UnitOfWork;
+using AMT.Services.UsrServices;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AMT.MultiTenantMappingApi.Controllers
@@ -11,18 +11,23 @@ namespace AMT.MultiTenantMappingApi.Controllers
     [Route("[controller]")]
     public class PasswordController : ControllerBase
     {
-        private readonly IUnitOfWorkUser uowUser;
         private readonly IPasswordServices passwordServices;
         private readonly ITokenServices tokenServices;
+        private readonly IUserServices userServices;
 
-        public PasswordController(IUnitOfWorkUser uowUser, IPasswordServices passwordServices, 
-            ITokenServices tokenServices) {
-            this.uowUser = uowUser;
+        public PasswordController(IPasswordServices passwordServices, 
+            ITokenServices tokenServices, IUserServices userServices) {
+            this.userServices = userServices;
             this.passwordServices = passwordServices;
             this.tokenServices = tokenServices;
         }
 
         // Post Verify password
+        /// <summary>
+        /// Application verifies the username and password and returns a bearer token.
+        /// </summary>
+        /// <param name="passwordDtoIn"></param>
+        /// <returns></returns>
         [HttpPost("~/VerifyPassword")]
         public async Task<BearerTokenDto> VerifyPassword(PasswordDtoIn passwordDtoIn)
         {
@@ -49,21 +54,32 @@ namespace AMT.MultiTenantMappingApi.Controllers
 
         // POST Api endpoint
         [HttpPost(Name ="CreatePassword")]
-        public async Task Post(Guid userId, string password)
+        public async Task<PasswordDto> Post(string username, string password)
         {
-            var user = await uowUser.UserRepository.GetByIdAsync(userId);
-            if(user == null || user.IsDeleted.Value)
+            var user = await userServices.ValidateUserExistsAsync(username);
+            if(user.IsFailed)
             {
-                throw new Exception("User not found");
+                var passwordDto = new PasswordDto() {
+                    HttpStatusCode = 400,
+                    IsSuccess = false,
+                    Errors = user.Errors.Select(x => new AMT.Services.MappedObjects.Response.Error() { Message = x.Message }).ToList()
+                };
+                return passwordDto;
             }
-            if (!user.Verified)
+            var userDto  = user.Value;
+            if (!userDto.Verified)
             {
-                throw new Exception("User not verified");
+                var passwordDto = new PasswordDto()
+                {
+                    HttpStatusCode = 400,
+                    IsSuccess = false,
+                    Errors = new List<AMT.Services.MappedObjects.Response.Error>() { new AMT.Services.MappedObjects.Response.Error() { Message = "User not verified" } }
+                };
+                return passwordDto;
             }
-            var hashingAlgorithm = await uowUser.HashingAlgorithmRepository
-                .GetFirstOrDefaultAsync(x=> x.AlgorithmName.Equals(AlgorithmEnum.BCrypt_9));
-            var passwordEntity = await passwordServices.CreatePasswordAsync(userId, password, hashingAlgorithm);
-            Results.Ok();
+
+            var passwordEntity = await passwordServices.CreatePasswordAsync(username, password, AlgorithmEnum.BCrypt_9);
+            return passwordEntity.Value;
         }
     }
 }

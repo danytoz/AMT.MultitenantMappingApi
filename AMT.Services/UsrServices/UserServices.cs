@@ -1,5 +1,7 @@
-﻿using AMT.UserRepository.Model;
+﻿using AMT.Services.MappedObjects;
+using AMT.UserRepository.Model;
 using AMT.UserRepository.UnitOfWork;
+using AutoMapper;
 using FluentResults;
 using System.ComponentModel.DataAnnotations;
 
@@ -8,10 +10,12 @@ namespace AMT.Services.UsrServices
     public class UserServices : IUserServices
     {
         private readonly IUnitOfWorkUser uowUser;
+        private readonly IMapper mapper;
 
-        public UserServices(IUnitOfWorkUser uowUser) 
+        public UserServices(IUnitOfWorkUser uowUser, IMapper mapper) 
         {
             this.uowUser = uowUser;
+            this.mapper = mapper;
         }
 
         /// <summary>
@@ -23,7 +27,7 @@ namespace AMT.Services.UsrServices
         /// <param name="name"></param>
         /// <param name="lastName"></param>
         /// <returns></returns>
-        public async Task<Result<User>> CreateUserAsync(string username, string name, string lastName)
+        public async Task<Result<UserDto>> CreateUserAsync(string username, string name, string lastName)
         {
             var validationResult = await ValidateUserAsync(username);
             if (validationResult.IsFailed)
@@ -46,7 +50,7 @@ namespace AMT.Services.UsrServices
             await uowUser.UserRepository.AddAsync(user);
             await uowUser.UserRepository.SaveChangesAsync();
 
-            return Result.Ok(user);
+            return Result.Ok(mapper.Map<UserDto>(user));
         }
 
         /// <summary>
@@ -78,6 +82,54 @@ namespace AMT.Services.UsrServices
             }
 
             return Result.Ok("Username is valid");
+        }
+
+        public async Task<Result<UserDto>> ValidateUserExistsAsync(string username)
+        {
+            var user = await uowUser.UserRepository.
+                GetFirstOrDefaultAsync(x => x.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
+            if (user == null)
+            {
+                return Result.Fail<UserDto>("User not found");
+            }
+            return Result.Ok(mapper.Map<UserDto>(user));
+        }
+
+        public async Task<Result<UserDto>> ValidateUserExistsAsync(Guid Id)
+        {
+            var user = await uowUser.UserRepository.GetByIdAsync(Id);
+            if (user == null)
+            {
+                return Result.Fail<UserDto>("User not found");
+            }
+            return Result.Ok(mapper.Map<UserDto>(user));
+        }
+
+        public async Task<Result<UserDto>> DeleteAsync(string username)
+        {
+            var user = await uowUser.UserRepository.
+                GetFirstOrDefaultAsync(x => x.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
+            if (user == null)
+            {
+                return Result.Fail<UserDto>("User not found");
+            }
+            uowUser.UserRepository.Delete(user);
+            await uowUser.UserRepository.SaveChangesAsync();
+            return Result.Ok(mapper.Map<UserDto>(user));
+        }
+
+        public async Task<Result<UserDto>> SoftDeleteAsync(string username)
+        {
+            var user = await uowUser.UserRepository.
+                GetFirstOrDefaultAsync(x => x.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
+            if (user == null)
+            {
+                return Result.Fail<UserDto>("User not found");
+            }
+            user.IsDeleted = true;
+            uowUser.UserRepository.Update(user);
+            await uowUser.UserRepository.SaveChangesAsync();
+            return Result.Ok(mapper.Map<UserDto>(user));
         }
     }
 }

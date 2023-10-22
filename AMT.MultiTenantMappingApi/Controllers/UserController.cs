@@ -2,7 +2,6 @@
 using AMT.Services.MappedObjects;
 using AMT.Services.PwdServices;
 using AMT.Services.UsrServices;
-using AMT.UserRepository.Model;
 using AMT.UserRepository.UnitOfWork;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +12,6 @@ namespace AMT.MultiTenantMappingApi.Controllers
     [Route("[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly IUnitOfWorkUser uowUser;
         private readonly IPasswordServices passwordServices;
         private readonly IUserServices userServices;
         private readonly IMapper mapper;
@@ -21,43 +19,81 @@ namespace AMT.MultiTenantMappingApi.Controllers
         public UserController(IUnitOfWorkUser uowUser, IPasswordServices passwordServices, 
             IUserServices userServices, IMapper mapper)
         {
-            this.uowUser = uowUser;
             this.passwordServices = passwordServices;
             this.userServices = userServices;
             this.mapper = mapper;
         }
         // GET Api endpoint
-        [HttpGet(Name ="GetUserById")]
-        public async Task<IResult> Get(Guid Id)
+        [HttpPost(Name ="~/GetUserById")]
+        public async Task<UserDto> GetUserById(Guid Id)
         {
-            User user = await uowUser.UserRepository.GetByIdAsync(Id);
-            var userDto = mapper.Map<UserDto>(user);
-            return Results.Ok(userDto);
+            var result = await userServices.ValidateUserExistsAsync(Id);
+            var userDto = new UserDto();
+            if(result.IsFailed)
+            {
+                userDto.HttpStatusCode = 400;
+                userDto.IsSuccess = false;
+                userDto.Errors = result.Errors.Select(x=> new AMT.Services.MappedObjects.Response.Error()
+                {
+                    Message = x.Message
+                }).ToList();
+                return userDto;
+            }
+            userDto = result.Value;
+            userDto.IsSuccess = true;
+            userDto.HttpStatusCode = 200;
+            return userDto;
         }
 
         // POST Api endpoint
-        [HttpPost(Name ="CreateUser")]
-        public async Task<IResult> Post(string name, string lastName, string username, string password)
+        [HttpPost(Name = "~/CreateUser")]
+        public async Task<UserDto> Post(CreateUserDtoIn createUserDtoIn)
         {
-            var result = await userServices.CreateUserAsync(username, name, lastName);
+            var result = await userServices.CreateUserAsync(createUserDtoIn.Username, createUserDtoIn.Name, createUserDtoIn.LastName);
+            UserDto userDto = new UserDto();
+            if(result.IsFailed)
+            {
+                userDto.HttpStatusCode = 400;
+                userDto.IsSuccess = false;
+                userDto.Errors = result.Errors.Select(x=> new AMT.Services.MappedObjects.Response.Error() {
+                    Message = x.Message
+                }).ToList();
+                return userDto;
+            }
+            userDto = result.Value;
+            var passwordResult = await passwordServices.
+                CreatePasswordAsync(createUserDtoIn.Username, createUserDtoIn.Password, AlgorithmEnum.BCrypt_9);
+            if(passwordResult.IsSuccess)
+            {
+                userDto.HttpStatusCode = 200;
+                userDto.IsSuccess = true;
+                return userDto;
+            }
+
+            //rollback changes
+            var user = await userServices.DeleteAsync(createUserDtoIn.Username);
+            userDto.HttpStatusCode = 400;
+            userDto.IsSuccess = false;
+            userDto.Errors = passwordResult.Errors.Select(x => new AMT.Services.MappedObjects.Response.Error()
+            {
+                Message = x.Message
+            }).ToList();
+            return userDto;
+        }
+
+        //Put Api endpoint
+        [HttpPost(Name = "~/DeleteUser")]
+        public async Task<IResult> Delete(string username)
+        {
+            var result = await userServices.SoftDeleteAsync(username);
             if(result.IsFailed)
             {
                 return Results.Ok(result.Errors.Select(x=>x.Message).ToList());
             }
-            var user = result.Value;
-            var hashingAlgorithm = await uowUser.HashingAlgorithmRepository
-                .GetFirstOrDefaultAsync(x => x.AlgorithmName.Equals(AlgorithmEnum.BCrypt_9.ToString()));
-            var passwordResult = await passwordServices.CreatePasswordAsync(user.Id, password, hashingAlgorithm);
-            if(passwordResult.IsSuccess)
-            {
-                var userDto = mapper.Map<UserDto>(user);
-                return Results.Ok(userDto);
-            }
-
-            //rollback changes
-            uowUser.UserRepository.Delete(user);
-            await uowUser.UserRepository.SaveChangesAsync();
-            return Results.Ok($"Error creating user {passwordResult.Errors.Select(x=>x.Message)}");
+            var userDto = result.Value;
+            userDto.HttpStatusCode = 200;
+            userDto.IsSuccess = true;
+            return Results.Ok(userDto);
         }
     }
 }

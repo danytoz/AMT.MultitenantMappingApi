@@ -1,4 +1,5 @@
 ﻿using AMT.DbHelpers.PasswordHelper;
+using AMT.Services.MappedObjects;
 using AMT.Services.Validators;
 using AMT.UserRepository.Model;
 using AMT.UserRepository.UnitOfWork;
@@ -59,23 +60,23 @@ namespace AMT.Services.PwdServices
         /// Function to create a new password for a user
         /// 
         /// </summary>
-        /// <param name="userId"></param>
+        /// <param name="username"></param>
         /// <param name="password"></param>
-        /// <param name="hashingAlgorithm"></param>
+        /// <param name="algorithm"></param>
         /// <returns></returns>
-        public async Task<Result<Password>> CreatePasswordAsync(Guid userId, string password, HashingAlgorithm hashingAlgorithm)
+        public async Task<Result<PasswordDto>> CreatePasswordAsync(string username, string password, AlgorithmEnum algorithm)
         {
             Password passwordObj = new Password();
             var passwordValidation = ValidatePassword(password);
             if (passwordValidation.IsFailed)
             {
-                return Result.Fail<Password>(passwordValidation.Errors);
+                return Result.Fail<PasswordDto>(passwordValidation.Errors);
             }
-            var enumValue = Enum.Parse(typeof(AlgorithmEnum), hashingAlgorithm.AlgorithmName);
-            switch (enumValue)
+            
+            switch (algorithm)
             {
                 case AlgorithmEnum.BCrypt_9:
-                    passwordObj = BCrypt_9(userId, password, hashingAlgorithm);
+                    passwordObj = BCrypt_9(username, password, algorithm);
                     break;
                 default:
                     break;
